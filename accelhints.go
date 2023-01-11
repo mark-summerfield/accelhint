@@ -26,25 +26,25 @@ const (
 )
 
 // Updates items inserting '&'s to indicate accelerators. Only characters in
-// the Alphabet are candidates.
-func AddHints(items []string) error {
+// the Alphabet are candidates. Returns the number of accelerated items.
+func AddHints(items []string) (int, error) {
 	return AddHintsFull(items, Marker, Alphabet)
 }
 
 // Updates items inserting marker's (only ASCII allowed) to indicate
 // accelerators with characters from the given alphabet (of unique uppercase
-// characters) as candidates.
-func AddHintsFull(items []string, marker byte, alphabet string) error {
+// characters) as candidates. Returns the number of accelerated items.
+func AddHintsFull(items []string, marker byte, alphabet string) (int, error) {
 	normalizeMarker(items, marker)
 	chars := []rune(alphabet)
 	weights := getWeights(items, marker, chars)
 	m, err := munkres.NewHungarianAlgorithm(weights)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	indexes := m.Execute()
-	updateItems(items, marker, chars, indexes)
-	return nil
+	done := updateItems(items, marker, chars, indexes)
+	return done, nil
 }
 
 func normalizeMarker(items []string, marker byte) {
@@ -99,7 +99,9 @@ func updateWeights(items []string, weights weights, marker rune,
 	}
 }
 
-func updateItems(items []string, marker byte, chars []rune, indexes []int) {
+func updateItems(items []string, marker byte, chars []rune,
+	indexes []int) int {
+	done := 0
 	m := string(marker)
 	for row, column := range indexes {
 		c := chars[column]
@@ -107,6 +109,7 @@ func updateItems(items []string, marker byte, chars []rune, indexes []int) {
 			item := items[row]
 			i := strings.IndexByte(item, marker)
 			if i > -1 {
+				done++
 				continue // user preset
 			}
 			uitem := strings.ToUpper(item)
@@ -125,8 +128,10 @@ func updateItems(items []string, marker byte, chars []rune, indexes []int) {
 			}
 			if index > -1 {
 				items[row] = item[:index] + m + item[index:]
+				done++
 			}
 
 		}
 	}
+	return done
 }
