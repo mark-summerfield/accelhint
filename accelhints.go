@@ -104,6 +104,9 @@ func updateItems(items []string, marker byte, chars []rune,
 	done := 0
 	m := string(marker)
 	for row, column := range indexes {
+		if column == -1 {
+			continue // unassigned
+		}
 		c := chars[column]
 		if row < len(items) {
 			item := items[row]
