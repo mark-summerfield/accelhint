@@ -19,10 +19,11 @@ var Version string
 type weights [][]float64
 
 const (
-	Alphabet  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789" // MUST be UPPERCASE
-	Marker    = '&'
-	GtkMarker = '_'
-	maxWeight = 90000.0
+	Alphabet    = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789" // MUST be UPPERCASE
+	Marker      = '&'
+	GtkMarker   = '_'
+	maxWeight   = 90000.0
+	placeholder = "\a\a"
 )
 
 // Returns items with '&'s to indicate accelerators. Only characters in
@@ -65,7 +66,7 @@ func IndexesFull(hinted []string, marker byte) ([]int, int) {
 	mm := m + m
 	count := 0
 	for _, hint := range hinted {
-		hint = strings.ReplaceAll(hint, mm, "||")
+		hint = strings.ReplaceAll(hint, mm, placeholder)
 		i := strings.IndexByte(hint, marker)
 		indexes = append(indexes, i)
 		if i > -1 {
@@ -82,7 +83,7 @@ func normalized(items []string, marker byte) []string {
 	mm := m + m
 	for _, line := range items {
 		lines = append(lines, rx.ReplaceAllLiteralString(
-			strings.ReplaceAll(line, mm, "||"), m))
+			strings.ReplaceAll(line, mm, placeholder), m))
 	}
 	return lines
 }
@@ -109,7 +110,7 @@ func updateWeights(items []string, weights weights, marker rune,
 	prev := rune(0)
 	for row, item := range items {
 		weight := 0.0
-		item = strings.ToUpper(strings.ReplaceAll(item, "&&", "\a\a"))
+		item = strings.ToUpper(strings.ReplaceAll(item, "&&", placeholder))
 		for column, c := range item {
 			i := slices.Index(chars, c)
 			if i > -1 { // c in alphabet
@@ -146,7 +147,7 @@ func applyIndexes(items []string, marker byte, chars []rune,
 			lines = append(lines, line)
 			continue // unassigned or empty
 		}
-		uline := strings.ReplaceAll(strings.ToUpper(line), mm, "||")
+		uline := strings.ReplaceAll(strings.ToUpper(line), mm, placeholder)
 		i := strings.IndexByte(uline, marker)
 		if i > -1 {
 			lines = append(lines, line)

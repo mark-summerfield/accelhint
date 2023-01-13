@@ -12,23 +12,24 @@ For example:
 		"Paste",
 		"Find",
 		"Find Again",
+		"Find && Replace", // literal '&'
 	}
-	err := AddHints(editMenuStrings) // changes in-place
-
-	// editMenuStrings is now:
-
+	hinted, err := Hints(editMenuStrings) 
+	// hinted is:
 	[]string{
-	"&Undo",
-	"&Redo",
-	"&Copy",
-	"Cu&t",
-	"&Paste",
-	"&Find",
-	"Find &Again"}
+		"&Undo",
+		"&Redo",
+		"&Copy",
+		"Cu&t",
+		"&Paste",
+		"&Find",
+		"Find &Again",
+		"F&ind && Replace"
+	}
 
-If you don't want in-place use `slices.Clone()`.
-
-Use `AddHintsFull` to control the marker and alphabet.
+Use `HintsFull` to control the marker and alphabet.
+Use `Indexes` or `IndexesFull` to get the index positions where the
+accelerators should go.
 
 ## License
 
