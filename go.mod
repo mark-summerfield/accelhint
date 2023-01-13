@@ -1,4 +1,4 @@
-module github.com/mark-summerfield/accelhints
+module github.com/mark-summerfield/accelhint
 
 go 1.19
 
