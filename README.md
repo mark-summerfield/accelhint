@@ -1,4 +1,4 @@
-# accelhints
+# accelhint
 
 A Go library for setting keyboard accelerators in a list of strings.
 
@@ -14,7 +14,7 @@ For example:
 		"Find Again",
 		"Find && Replace", // literal '&'
 	}
-	hinted, err := Hints(editMenuStrings) 
+	hinted, err := accelhint.Hints(editMenuStrings) 
 	// hinted is:
 	[]string{
 		"&Undo",
