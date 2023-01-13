@@ -1,4 +1,4 @@
-package accelhints
+package accelhint
 
 import (
 	"testing"

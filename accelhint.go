@@ -1,7 +1,7 @@
 // Copyright © 2023 Mark Summerfield. All rights reserved.
 // License: Apache-2.0
 
-package accelhints
+package accelhint
 
 import (
 	_ "embed"

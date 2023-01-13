@@ -1,5 +1,5 @@
 #!/bin/bash
-clc -sS -e accelhints_test.go
+clc -sS -e accelhint_test.go
 go mod tidy
 go fmt .
 staticcheck .
