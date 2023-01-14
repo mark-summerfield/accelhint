@@ -1,6 +1,7 @@
 package accelhint
 
 import (
+	"math"
 	"strings"
 	"testing"
 
@@ -603,6 +604,16 @@ func Test004(t *testing.T) {
 			"Find Again",
 			"Find && Replace",
 		},
+		{"O&ne", "Two"},
+		{
+			"Undo",
+			"Redo",
+			"Copy",
+			"Cu&t",
+			"Paste",
+			"Find",
+			"Find Again",
+		},
 	}
 
 	expecteds := [][]string{
@@ -1107,16 +1118,35 @@ func Test004(t *testing.T) {
 			"Find &Again",
 			"F&ind && Replace",
 		},
+		{"O&ne", "&Two"}, // 29
+		{ // 30
+			"&Undo",
+			"&Redo",
+			"&Copy",
+			"Cu&t",
+			"&Paste",
+			"&Find",
+			"Find &Again"},
 	}
+
+	qualities := []float64{80, 33, 69, 75, 83, 100, 85, 80, 61, 70, 70, 69,
+		74, 61, 67, 73, 64, 68, 86, 59, 66, 75, 82, 67, 63, 64, 64, 61, 75,
+		63, 82}
 
 	for i := 0; i < len(originals); i++ {
 		original := originals[i]
 		expected := expecteds[i]
+		quality := qualities[i]
 		actual, err := Hints(original)
 		if err != nil {
 			t.Errorf("unexpected error: %s", err)
 		}
 		sanityCheck(actual, t)
+		actualQuality := math.Round(Quality(actual, '&'))
+		if !isRealClose(quality, actualQuality) {
+			t.Errorf("expected quality %.0f, got %.0f", quality,
+				actualQuality)
+		}
 		for j := 0; j < len(original); j++ {
 			if actual[j] != expected[j] {
 				t.Errorf("#%d", i)
@@ -1141,4 +1171,10 @@ func sanityCheck(hinted []string, t *testing.T) {
 			used[c] = true
 		}
 	}
+}
+
+// Copied from gong
+func isRealClose(a, b float64) bool {
+	return math.Abs(a-b) <= math.Max(1e-9*math.Max(math.Abs(a),
+		math.Abs(b)), math.SmallestNonzeroFloat64)
 }
