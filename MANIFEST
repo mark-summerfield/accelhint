@@ -1,3 +1,4 @@
+# TODO add check(accelerated []strings) that checks uniqueness
 accelhint.go
 
 accelhint_test.go

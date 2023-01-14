@@ -5,6 +5,7 @@ package accelhint
 
 import (
 	_ "embed"
+	"fmt"
 	"regexp"
 	"strings"
 	"unicode"
@@ -170,4 +171,28 @@ func applyIndexes(items []string, marker byte, chars []rune,
 		lines = append(lines, line)
 	}
 	return lines
+}
+
+func sanityCheck(items, hinted []string) bool {
+	indexes, _ := Indexes(hinted)
+	used := make(map[rune]bool, len(hinted))
+	for i := 0; i < len(hinted); i++ {
+		index := indexes[i]
+		if index > -1 {
+			chars := []rune(items[i])
+			c := chars[index]
+			if c == '&' {
+				continue
+			}
+			_, found := used[c]
+			if found {
+				fmt.Println("items:", strings.Join(items, "| "))
+				fmt.Println("hints:", strings.Join(hinted, "| "))
+				fmt.Println("indxs:", indexes, "dup:", string(c))
+				return false // duplicate
+			}
+			used[c] = true
+		}
+	}
+	return true
 }
