@@ -1,7 +1,10 @@
 package accelhint
 
 import (
+	"strings"
 	"testing"
+
+	"golang.org/x/exp/slices"
 )
 
 func Test001(t *testing.T) {
@@ -11,9 +14,7 @@ func Test001(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
-	if !sanityCheck(original, actual) {
-		t.Error("unexpectedly failed sanity check")
-	}
+	sanityCheck(actual, t)
 	_, n := Indexes(actual)
 	if n != 2 {
 		t.Errorf("expected 2 accelrated got %d", n)
@@ -47,9 +48,7 @@ func Test002(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
-	if !sanityCheck(original, actual) {
-		t.Error("unexpectedly failed sanity check")
-	}
+	sanityCheck(actual, t)
 	_, n := Indexes(actual)
 	if n != 7 {
 		t.Errorf("expected 7 accelrated got %d", n)
@@ -625,15 +624,15 @@ func Test004(t *testing.T) {
 			"Align &Right",
 		},
 		{ // 1
-			"&abc",
-			"&bca",
-			"&cab",
+			"abc",
+			"bca",
+			"cab",
 			"aab",
 			"bbc",
 			"cca",
-			"cba",
-			"bcb",
-			"acc",
+			"&cba",
+			"&bcb",
+			"&acc",
 		},
 		{ // 2
 			"&Lists",
@@ -736,7 +735,7 @@ func Test004(t *testing.T) {
 			"T&ype",
 			"&Title",
 			"&Forenames",
-			"&Surname",
+			"Surname",
 			"&Company",
 			"&Email",
 			"&Phone",
@@ -745,10 +744,10 @@ func Test004(t *testing.T) {
 			"F&ind",
 			"&New",
 			"&Duplicate",
-			"Update",
+			"Upd&ate",
 			"De&lete",
 			"Confi&gure",
-			"St&atistics",
+			"&Statistics",
 			"E&xport",
 			"&Open",
 			"Sa&ve",
@@ -756,11 +755,11 @@ func Test004(t *testing.T) {
 		},
 		{ // 11
 			"Initial &No",
-			"M&ax Supportable No",
+			"&Max Supportable No",
 			"&Initial Memory Size",
-			"&Mutation Rate",
-			"Survival &Rate",
-			"&Start",
+			"Mutation &Rate",
+			"&Survival Rate",
+			"S&tart",
 			"Pa&use",
 			"&Zoom",
 		},
@@ -785,7 +784,7 @@ func Test004(t *testing.T) {
 			"P&ython Documentation",
 		},
 		{ // 13
-			"&Undo",
+			"Undo",
 			"&Redo",
 			"&Copy",
 			"Cu&t",
@@ -800,7 +799,7 @@ func Test004(t *testing.T) {
 			"&Indent Region",
 			"Unin&dent Region",
 			"C&omment Region",
-			"Uncomment Region",
+			"&Uncomment Region",
 		},
 		{ // 14
 			"Add &Top-Level Term",
@@ -823,10 +822,10 @@ func Test004(t *testing.T) {
 		{ // 15
 			"&Toolbars",
 			"Status &Bar",
-			"&Sidebar",
-			"St&op",
+			"S&idebar",
+			"&Stop",
 			"&Reload",
-			"Text S&ize",
+			"T&ext Size",
 			"&Page Style",
 			"&Character Encoding",
 			"P&age Source",
@@ -838,45 +837,45 @@ func Test004(t *testing.T) {
 			"Recent Doc&uments",
 			"&Wizards",
 			"&Close",
-			"&Save",
+			"Save",
 			"Save &As...",
 			"Save A&ll",
 			"&Reload",
 			"&Versions...",
 			"&Export...",
 			"Export as PD&F...",
-			"Send",
-			"&Properties...",
+			"&Send",
+			"Properties...",
 			"&Digital Signatures...",
 			"&Templates",
 			"Preview in Web &Browser",
-			"Page Preview",
+			"Pa&ge Preview",
 			"Pr&int...",
-			"Printer Settin&gs...",
+			"&Printer Settings...",
 			"E&xit",
 		},
 		{ // 17
 			"&Undo",
 			"&Redo",
-			"&Cut",
+			"Cut",
 			"Cop&y",
-			"&Paste",
-			"Paste Special...",
+			"Paste",
+			"&Paste Special...",
 			"Select &Text",
 			"&Select All",
-			"Chan&ges",
+			"&Changes",
 			"Co&mpare Documents...",
-			"&Find and Replace",
+			"Find and Replace",
 			"&Navigator",
 			"&AutoText...",
 			"&Exchange Database...",
 			"Fiel&ds...",
-			"Footnote...",
+			"&Footnote...",
 			"Inde&x Entry...",
 			"&Bibliography Entry",
 			"&Hyperlink",
 			"&Links...",
-			"Plug-in",
+			"Plu&g-in",
 			"&ImageMap",
 			"&Object",
 		},
@@ -893,34 +892,34 @@ func Test004(t *testing.T) {
 			"&Nonprinting Characters",
 			"&Hidden Paragraphs",
 			"&Data Sources",
-			"Full S&creen",
+			"F&ull Screen",
 			"&Zoom",
 		},
 		{ // 19
 			"&Manual Break",
 			"Fiel&ds",
-			"Specia&l Character...",
+			"Special Character...",
 			"Formatting Mar&k",
-			"&Section...",
+			"Section...",
 			"H&yperlink",
 			"&Header",
 			"Footer",
-			"Footnote",
-			"&Caption",
+			"&Footnote",
+			"C&aption",
 			"&Bookmark",
-			"Cross-reference...",
+			"&Cross-reference...",
 			"&Note...",
-			"Script...",
+			"&Script...",
 			"&Indexes and Tables",
 			"&Envelope...",
-			"Frame...",
+			"F&rame...",
 			"&Table...",
-			"Horizontal &Ruler...",
+			"Hori&zontal Ruler...",
 			"&Picture",
-			"Movie &and Sound",
+			"Mo&vie and Sound",
 			"&Object",
 			"Floatin&g Frame",
-			"&File...",
+			"Fi&le...",
 		},
 		{ // 20
 			"&Default Formatting",
@@ -934,10 +933,10 @@ func Test004(t *testing.T) {
 			"&Sections...",
 			"St&yles and Formatting",
 			"A&utoFormat",
-			"Ancho&r",
+			"A&nchor",
 			"&Wrap",
-			"Alig&nment",
-			"&Arrange",
+			"&Alignment",
+			"A&rrange",
 			"&Flip",
 			"&Group",
 			"&Object",
@@ -947,24 +946,24 @@ func Test004(t *testing.T) {
 		{ // 21
 			"&Insert",
 			"&Delete",
-			"&Select",
-			"Mer&ge Cells",
-			"Split C&ells",
+			"S&elect",
+			"&Merge Cells",
+			"&Split Cells",
 			"&Protect Cells",
-			"&Merge Table",
+			"Me&rge Table",
 			"Sp&lit Table",
 			"&AutoFormat...",
 			"A&utofit",
 			"&Heading rows repeat",
 			"&Convert",
-			"So&rt...",
+			"S&ort...",
 			"&Formula",
 			"&Number Format...",
 			"Table &Boundaries",
 			"&Table Properties...",
 		},
 		{ // 22
-			"Spellchec&k...",
+			"&Spellcheck...",
 			"&Language",
 			"&Word Count",
 			"&AutoCorrect...",
@@ -973,11 +972,11 @@ func Test004(t *testing.T) {
 			"&Gallery",
 			"Media &Player",
 			"&Bibliography Database",
-			"&Mail Merge Wizard...",
-			"&Sort...",
+			"Ma&il Merge Wizard...",
+			"So&rt...",
 			"&Calculate",
 			"&Update",
-			"Mac&ros",
+			"&Macros",
 			"&Extension Manager...",
 			"&XML Filter Settings...",
 			"Cus&tomize...",
@@ -992,19 +991,19 @@ func Test004(t *testing.T) {
 			"Paste Special...",
 			"Select Te&xt",
 			"&Select All",
-			"Chan&ges",
-			"Compare &Documents...",
-			"&Find and Replace",
+			"Changes",
+			"Co&mpare Documents...",
+			"Find and Replace",
 			"&Navigator",
 			"&AutoText...",
 			"&Exchange Database...",
-			"Fields...",
-			"Footnote...",
+			"Fiel&ds...",
+			"&Footnote...",
 			"Index Entr&y...",
 			"&Bibliography Entry",
 			"&Hyperlink",
 			"&Links...",
-			"Plug-in",
+			"Plu&g-in",
 			"&ImageMap",
 			"&Object",
 		},
@@ -1012,21 +1011,21 @@ func Test004(t *testing.T) {
 			"&Fields",
 			"Specia&l Character...",
 			"Formatting Mar&k",
-			"&Section...",
-			"&Hyperlink",
+			"Section...",
+			"H&yperlink",
 			"Hea&der",
-			"Foote&r",
+			"Footer",
 			"Footnote",
-			"Caption",
+			"C&aption",
 			"&Bookmark",
 			"&Cross-reference...",
 			"&Note...",
-			"Script...",
+			"&Script...",
 			"&Indexes and Tables",
 			"&Envelope...",
-			"Fr&ame...",
+			"F&rame...",
 			"&Table...",
-			"Hori&zontal Ruler...",
+			"&Horizontal Ruler...",
 			"&Picture",
 			"&Movie and Sound",
 			"&Object",
@@ -1034,54 +1033,54 @@ func Test004(t *testing.T) {
 		},
 		{ // 25
 			"&Undo",
-			"&Redo",
-			"Repeat",
+			"Redo",
+			"&Repeat",
 			"Cu&t",
 			"&Copy",
-			"&Paste",
-			"Past&e Special...",
-			"&Select All",
+			"Paste",
+			"Paste Special...",
+			"Select All",
 			"Chan&ges",
 			"Co&mpare Document...",
 			"Find &and Replace...",
 			"&Navigator",
 			"&Headers and Footers...",
 			"&Fill",
-			"&Delete Contents...",
-			"Delete Cells...",
-			"Sheet",
+			"D&elete Contents...",
+			"&Delete Cells...",
+			"&Sheet",
 			"Delete Manual &Break",
 			"&Links...",
-			"Plug-in",
+			"&Plug-in",
 			"&ImageMap",
 			"&Object",
 		},
 		{ // 26
 			"&Undo",
-			"&Redo",
-			"Repeat",
+			"Redo",
+			"&Repeat",
 			"Cu&t",
 			"&Copy",
-			"&Paste",
-			"Past&e Special...",
-			"&Select All",
+			"Paste",
+			"Paste Special...",
+			"Select All",
 			"Chan&ges",
 			"Co&mpare Document...",
 			"Find &and Replace...",
 			"&Navigator",
 			"&Headers and Footers...",
 			"&Fill",
-			"&Delete Contents...",
-			"Delete Cells...",
-			"Sheet",
+			"D&elete Contents...",
+			"&Delete Cells...",
+			"&Sheet",
 			"Delete Manual &Break",
 			"&Links...",
-			"Plug-in",
+			"&Plug-in",
 			"&ImageMap",
 			"&Object",
 		},
 		{ // 27
-			"&Undo",
+			"Undo",
 			"&Redo",
 			"&Copy",
 			"Cu&t",
@@ -1096,7 +1095,7 @@ func Test004(t *testing.T) {
 			"&Indent Region",
 			"Unin&dent Region",
 			"C&omment Region",
-			"Uncomment Region",
+			"&Uncomment Region",
 		},
 		{ // 28
 			"&Undo",
@@ -1106,26 +1105,40 @@ func Test004(t *testing.T) {
 			"&Paste",
 			"&Find",
 			"Find &Again",
-			"Fi&nd && Replace",
+			"F&ind && Replace",
 		},
 	}
 
-	//	for i := 0; i < len(originals); i++ {
-	for i := 0; i < 13; i++ { // TODO check them all
+	for i := 0; i < len(originals); i++ {
 		original := originals[i]
 		expected := expecteds[i]
 		actual, err := Hints(original)
 		if err != nil {
 			t.Errorf("unexpected error: %s", err)
 		}
-		if !sanityCheck(original, actual) {
-			t.Errorf("#%d: unexpectedly failed sanity check", i)
-		}
+		sanityCheck(actual, t)
 		for j := 0; j < len(original); j++ {
 			if actual[j] != expected[j] {
 				t.Errorf("#%d", i)
 				t.Errorf("expected %q, got %q", expected[j], actual[j])
 			}
+		}
+	}
+}
+
+func sanityCheck(hinted []string, t *testing.T) {
+	used := make(map[rune]bool, len(hinted))
+	for _, hints := range hinted {
+		hints := []rune(strings.ReplaceAll(hints, "&&", "||"))
+		i := slices.Index(hints, '&')
+		if i > -1 && i+1 < len(hints) {
+			c := hints[i+1]
+			_, found := used[c]
+			if found {
+				t.Errorf("unexpected duplicate %c in %s", c,
+					strings.Join(hinted, "| "))
+			}
+			used[c] = true
 		}
 	}
 }
