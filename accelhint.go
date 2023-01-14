@@ -60,6 +60,7 @@ func Indexes(hinted []string) ([]int, int) {
 // Returns a list of accelerator indexes in the given hinted strings, and
 // how many have indexes (i.e., a count of those with an index > -1).
 // For those with no accelerator their index value is -1.
+// The accelerated character is at the _following_ position.
 func IndexesFull(hinted []string, marker byte) ([]int, int) {
 	indexes := make([]int, 0, len(hinted))
 	m := string(marker)
@@ -74,27 +75,6 @@ func IndexesFull(hinted []string, marker byte) ([]int, int) {
 		}
 	}
 	return indexes, count
-}
-
-// Returns a notional measure of quality between 0.0% (no accelerators) and
-// 100.0% (every hinted item has an accelerator for its first letter).
-func Quality(hinted []string, marker byte) float64 {
-	max := float64(len(hinted)) * 4.0
-	total := 0.0
-	for _, hints := range hinted {
-		hints := []rune(strings.ReplaceAll(hints, "&&", "||"))
-		i := slices.Index(hints, '&')
-		if i > -1 && i+1 < len(hints) {
-			if i == 0 {
-				total += 4.0 // first char
-			} else if unicode.IsSpace(hints[i-1]) {
-				total += 2.0 // word char
-			} else {
-				total += 1.0 // anywhere
-			}
-		}
-	}
-	return (total / max) * 100.0
 }
 
 func normalized(items []string, marker byte) []string {
