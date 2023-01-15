@@ -27,9 +27,8 @@ For example:
 		"F&ind && Replace"
 	}
 
-Use `HintsFull` to control the marker and alphabet.
-Use `Accelerators` or `AcceleratorsFull` to get a slice of the accelerator
-runes.
+Use `HintsX` to control the marker and alphabet.
+Use `Accelerators` or `AcceleratorsX` to get a slice of the accelerator runes.
 
 For example, to populate a dynamically created menu, use something like this:
 

@@ -29,14 +29,14 @@ const (
 // accelerated. Only characters in the Alphabet are candidates. Use '&&' for
 // literal '&'s.
 func Hints(items []string) ([]string, int, error) {
-	return HintsFull(items, Marker, Alphabet)
+	return HintsX(items, Marker, Alphabet)
 }
 
 // Returns items with marker's (only ASCII allowed) to indicate
 // accelerators with characters from the given alphabet (of unique uppercase
 // characters) as candidates, and how many were accelerated. Use marker +
 // marker for literal markers.
-func HintsFull(items []string, marker byte, alphabet string) ([]string,
+func HintsX(items []string, marker byte, alphabet string) ([]string,
 	int, error) {
 	lines := normalized(items, marker)
 	alphabetChars := []rune(alphabet)
@@ -53,12 +53,12 @@ func HintsFull(items []string, marker byte, alphabet string) ([]string,
 // Returns the accelerated chars from the hinted strings assuming '&' in the
 // accelerator marker. rune(0) indicates no accelerator.
 func Accelerators(hinted []string) []rune {
-	return AcceleratorsFull(hinted, '&')
+	return AcceleratorsX(hinted, '&')
 }
 
 // Returns the accelerated chars from the hinted strings using the given
 // accelerator marker. rune(0) indicates no accelerator.
-func AcceleratorsFull(hinted []string, marker byte) []rune {
+func AcceleratorsX(hinted []string, marker byte) []rune {
 	m := string(marker)
 	mm := m + m
 	chars := make([]rune, 0, len(hinted))
