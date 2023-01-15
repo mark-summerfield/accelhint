@@ -28,8 +28,31 @@ For example:
 	}
 
 Use `HintsFull` to control the marker and alphabet.
-Use `Indexes` or `IndexesFull` to get the index positions where the
-accelerators should go.
+Use `Accelerators` or `AcceleratorsFull` to get a slice of the accelerator
+runes.
+
+For example, to populate a dynamically created menu, use something like this:
+
+	items := make([]string, len(menuItems)) // assumes menuItems
+	for _, menuItem := range menuItems {
+		items = append(items, menuItem.Text())
+	}
+	hinted, err := accelhint.Hints(items)
+	if err != nil {
+		log.Fatal(err)
+	}
+	accels := accelhint.Accelerators(hinted)
+	for i := 0; i < len(menuItems); i++ {
+		accel := accels[i]
+		if accel != 0 { // has an accelerator
+			chars := []rune(items[i])
+			j := slices.Index(chars, accel)
+			if j > -1 { // should always be true
+				chars = slices.Insert(chars, j, '&') // or '_' for Gtk
+				menuItems[i].SetText(string(chars))
+			}
+		}
+	}
 
 ## License
 

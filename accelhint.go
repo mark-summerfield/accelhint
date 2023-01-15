@@ -5,7 +5,6 @@ package accelhint
 
 import (
 	_ "embed"
-	"regexp"
 	"strings"
 	"unicode"
 
@@ -26,72 +25,69 @@ const (
 	placeholder = "\a\a"
 )
 
-// Returns items with '&'s to indicate accelerators. Only characters in
-// the Alphabet are candidates. Use '&&' for literal '&'s.
-func Hints(items []string) ([]string, error) {
+// Returns items with '&'s to indicate accelerators, and the number
+// accelerated. Only characters in the Alphabet are candidates. Use '&&' for
+// literal '&'s.
+func Hints(items []string) ([]string, int, error) {
 	return HintsFull(items, Marker, Alphabet)
 }
 
 // Returns items with marker's (only ASCII allowed) to indicate
 // accelerators with characters from the given alphabet (of unique uppercase
-// characters) as candidates. Use marker + marker for literal markers.
+// characters) as candidates, and how many were accelerated. Use marker +
+// marker for literal markers.
 func HintsFull(items []string, marker byte, alphabet string) ([]string,
-	error) {
+	int, error) {
 	lines := normalized(items, marker)
-	chars := []rune(alphabet)
-	weights := getWeights(lines, marker, chars)
+	alphabetChars := []rune(alphabet)
+	weights := getWeights(lines, marker, alphabetChars)
 	m, err := munkres.NewHungarianAlgorithm(weights)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	indexes := m.Execute()
-	lines = applyIndexes(items, marker, chars, indexes)
-	return lines, nil
+	lines, count := applyIndexes(items, marker, alphabetChars, indexes)
+	return lines, count, nil
 }
 
-// Returns a list of accelerator indexes in the given hinted strings, and
-// how many have indexes (i.e., a count of those with an index > -1).
-// For those with no accelerator their index value is -1.
-// Assumes the marker is '&'.
-func Indexes(hinted []string) ([]int, int) {
-	return IndexesFull(hinted, '&')
+// Returns the accelerated chars from the hinted strings assuming '&' in the
+// accelerator marker. rune(0) indicates no accelerator.
+func Accelerators(hinted []string) []rune {
+	return AcceleratorsFull(hinted, '&')
 }
 
-// Returns a list of accelerator indexes in the given hinted strings, and
-// how many have indexes (i.e., a count of those with an index > -1).
-// For those with no accelerator their index value is -1.
-// The accelerated character is at the _following_ position.
-func IndexesFull(hinted []string, marker byte) ([]int, int) {
-	indexes := make([]int, 0, len(hinted))
+// Returns the accelerated chars from the hinted strings using the given
+// accelerator marker. rune(0) indicates no accelerator.
+func AcceleratorsFull(hinted []string, marker byte) []rune {
 	m := string(marker)
 	mm := m + m
-	count := 0
+	chars := make([]rune, 0, len(hinted))
 	for _, hint := range hinted {
 		hint = strings.ReplaceAll(hint, mm, placeholder)
-		i := strings.IndexByte(hint, marker)
-		indexes = append(indexes, i)
-		if i > -1 {
-			count++
+		hintChars := []rune(hint)
+		i := slices.Index(hintChars, rune(marker))
+		if i == -1 || i+1 == len(hintChars) {
+			chars = append(chars, 0)
+		} else {
+			chars = append(chars, hintChars[i+1])
 		}
 	}
-	return indexes, count
+	return chars
 }
 
 func normalized(items []string, marker byte) []string {
 	lines := make([]string, 0, len(items))
-	rx := regexp.MustCompile(`[_&]`)
 	m := string(marker)
 	mm := m + m
 	for _, line := range items {
-		lines = append(lines, rx.ReplaceAllLiteralString(
-			strings.ReplaceAll(line, mm, placeholder), m))
+		lines = append(lines, strings.ReplaceAll(line, mm, placeholder))
 	}
 	return lines
 }
 
-func getWeights(items []string, marker byte, chars []rune) weights {
-	weights := makeMaxWeights(len(chars))
-	updateWeights(items, weights, rune(marker), chars)
+func getWeights(items []string, marker byte, alphabet []rune) weights {
+	weights := makeMaxWeights(len(alphabet))
+	updateWeights(items, weights, rune(marker), alphabet)
 	return weights
 }
 
@@ -107,18 +103,20 @@ func makeMaxWeights(size int) weights {
 }
 
 func updateWeights(items []string, weights weights, marker rune,
-	chars []rune) {
+	alphabet []rune) {
+	m := string(marker)
+	mm := m + m
 	prev := rune(0)
 	for row, item := range items {
 		weight := 0.0
-		item = strings.ToUpper(strings.ReplaceAll(item, "&&", placeholder))
+		item = strings.ToUpper(strings.ReplaceAll(item, mm, placeholder))
 		for column, c := range item {
-			i := slices.Index(chars, c)
+			i := slices.Index(alphabet, c)
 			if i > -1 { // c in alphabet
-				if column == 0 { // first
-					weight = maxWeight - 4.0
-				} else if prev == marker { // preset
+				if prev == marker { // preset
 					weight = maxWeight - 99.0
+				} else if column == 0 { // first
+					weight = maxWeight - 4.0
 				} else if unicode.IsSpace(prev) { // word start
 					weight = maxWeight - 2.0
 				} else { // anywhere
@@ -136,9 +134,10 @@ func updateWeights(items []string, weights weights, marker rune,
 	}
 }
 
-func applyIndexes(items []string, marker byte, chars []rune,
-	indexes []int) []string {
+func applyIndexes(items []string, marker byte, alphabet []rune,
+	indexes []int) ([]string, int) {
 	lines := make([]string, 0, len(items))
+	count := 0
 	m := string(marker)
 	mm := m + m
 	for row, column := range indexes {
@@ -154,9 +153,10 @@ func applyIndexes(items []string, marker byte, chars []rune,
 		i := strings.IndexByte(uline, marker)
 		if i > -1 {
 			lines = append(lines, line)
+			count++
 			continue // user preset
 		}
-		c := chars[column]
+		c := alphabet[column]
 		sc := string(c)
 		var index int                      // first is best
 		if !strings.HasPrefix(uline, sc) { // !first
@@ -169,8 +169,9 @@ func applyIndexes(items []string, marker byte, chars []rune,
 		}
 		if index > -1 {
 			line = line[:index] + m + line[index:]
+			count++
 		}
 		lines = append(lines, line)
 	}
-	return lines
+	return lines, count
 }

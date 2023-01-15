@@ -10,18 +10,18 @@ import (
 func Test001(t *testing.T) {
 	original := []string{"O&ne", "Two"}
 	expected := []string{"O&ne", "&Two"}
-	actual, err := Hints(original)
+	actual, count, err := Hints(original)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
 	sanityCheck(actual, t)
-	indexes, n := Indexes(actual)
-	if n != 2 {
-		t.Errorf("expected 2 accelrated got %d", n)
+	if count != 2 {
+		t.Errorf("expected 2 accelrated got %d", count)
 	}
-	expectedIndexes := []int{1, 0}
-	if !slices.Equal(indexes, expectedIndexes) {
-		t.Errorf("expected %v indexes, got %v", expectedIndexes, indexes)
+	expectedAccels := []rune{'n', 'T'}
+	accels := Accelerators(actual)
+	if !slices.Equal(accels, expectedAccels) {
+		t.Errorf("expected %v accels, got %v", expectedAccels, accels)
 	}
 	for i := 0; i < len(original); i++ {
 		if actual[i] != expected[i] {
@@ -48,18 +48,18 @@ func Test002(t *testing.T) {
 		"&Paste",
 		"&Find",
 		"Find &Again"}
-	actual, err := Hints(original)
+	actual, count, err := Hints(original)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
 	sanityCheck(actual, t)
-	indexes, n := Indexes(actual)
-	if n != 7 {
-		t.Errorf("expected 7 accelrated got %d", n)
+	if count != 7 {
+		t.Errorf("expected 7 accelrated got %d", count)
 	}
-	expectedIndexes := []int{0, 0, 0, 2, 0, 0, 5}
-	if !slices.Equal(indexes, expectedIndexes) {
-		t.Errorf("expected %v indexes, got %v", expectedIndexes, indexes)
+	expectedAccels := []rune{'U', 'R', 'C', 't', 'P', 'F', 'A'}
+	accels := Accelerators(actual)
+	if !slices.Equal(accels, expectedAccels) {
+		t.Errorf("expected %v accels, got %v", expectedAccels, accels)
 	}
 	for i := 0; i < len(original); i++ {
 		if actual[i] != expected[i] {
@@ -87,23 +87,21 @@ func Test003(t *testing.T) {
 		"&Find",
 		"Find &Again",
 		"F&ind && Replace"}
-	expectedIndexes := []int{0, 0, 0, 2, 0, 0, 5, 1}
-	actual, err := Hints(original)
+	actual, count, err := Hints(original)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
-	indexes, n := Indexes(actual)
-	if n != 8 {
-		t.Errorf("expected 8 accelrated got %d", n)
+	if count != 8 {
+		t.Errorf("expected 8 accelrated got %d", count)
+	}
+	expectedAccels := []rune{'U', 'R', 'C', 't', 'P', 'F', 'A', 'i'}
+	accels := Accelerators(actual)
+	if !slices.Equal(accels, expectedAccels) {
+		t.Errorf("expected %v accels, got %v", expectedAccels, accels)
 	}
 	for i := 0; i < len(original); i++ {
 		if actual[i] != expected[i] {
 			t.Errorf("expected %q, got %q", expected[i], actual[i])
-		}
-	}
-	for i := 0; i < len(original); i++ {
-		if indexes[i] != expectedIndexes[i] {
-			t.Errorf("expected %d, got %d", expectedIndexes[i], indexes[i])
 		}
 	}
 }
@@ -1139,7 +1137,7 @@ func Test004(t *testing.T) {
 	for i := 0; i < len(originals); i++ {
 		original := originals[i]
 		expected := expecteds[i]
-		actual, err := Hints(original)
+		actual, _, err := Hints(original)
 		if err != nil {
 			t.Errorf("unexpected error: %s", err)
 		}
