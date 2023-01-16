@@ -28,15 +28,17 @@ const (
 // Returns items with '&'s to indicate accelerators, and the number
 // accelerated. Only characters in the Alphabet are candidates. Use '&&' for
 // literal '&'s.
-func Hints(items []string) ([]string, int, error) {
-	return HintsX(items, Marker, Alphabet)
+// See also HintedX.
+func Hinted(items []string) ([]string, int, error) {
+	return HintedX(items, Marker, Alphabet)
 }
 
 // Returns items with marker's (only ASCII allowed) to indicate
 // accelerators with characters from the given alphabet (of unique uppercase
 // characters) as candidates, and how many were accelerated. Use marker +
 // marker for literal markers.
-func HintsX(items []string, marker byte, alphabet string) ([]string,
+// See also Hinted.
+func HintedX(items []string, marker byte, alphabet string) ([]string,
 	int, error) {
 	lines := normalized(items, marker)
 	alphabetChars := []rune(alphabet)
@@ -50,14 +52,16 @@ func HintsX(items []string, marker byte, alphabet string) ([]string,
 	return lines, count, nil
 }
 
-// Returns the accelerated chars from the hinted strings assuming '&' in the
+// Returns the accelerated chars from the hinted strings assuming '&' is the
 // accelerator marker. rune(0) indicates no accelerator.
+// See also AcceleratorsX.
 func Accelerators(hinted []string) []rune {
 	return AcceleratorsX(hinted, '&')
 }
 
 // Returns the accelerated chars from the hinted strings using the given
 // accelerator marker. rune(0) indicates no accelerator.
+// See also Accelerators.
 func AcceleratorsX(hinted []string, marker byte) []rune {
 	m := string(marker)
 	mm := m + m
