@@ -14,7 +14,7 @@ For example:
 		"Find Again",
 		"Find && Replace", // literal '&'
 	}
-	hinted, err := accelhint.Hints(editMenuStrings) 
+	hinted, err := accelhint.Hinted(editMenuStrings) 
 	// hinted is:
 	[]string{
 		"&Undo",
@@ -27,7 +27,7 @@ For example:
 		"F&ind && Replace"
 	}
 
-Use `HintsX` to control the marker and alphabet.
+Use `HintedX` to control the marker and alphabet.
 Use `Accelerators` or `AcceleratorsX` to get a slice of the accelerator runes.
 
 For example, to populate a dynamically created menu, use something like this:
@@ -36,7 +36,7 @@ For example, to populate a dynamically created menu, use something like this:
 	for _, menuItem := range menuItems {
 		items = append(items, menuItem.Text())
 	}
-	hinted, err := accelhint.Hints(items)
+	hinted, err := accelhint.Hinted(items)
 	if err != nil {
 		log.Fatal(err)
 	}
