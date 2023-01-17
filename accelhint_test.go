@@ -1151,7 +1151,25 @@ func Test004(t *testing.T) {
 	}
 }
 
-func TestBadInput(t *testing.T) {
+func TestBad1(t *testing.T) {
+	original := []string{
+		"Undo",
+		"Redo",
+		"&Copy",
+		"&Cut", // duplicate preset
+		"Paste",
+		"Find",
+		"Find Again",
+		"Find && Replace",
+	}
+	_, _, err := Hinted(original)
+	if err == nil {
+		t.Error("expected an error")
+	}
+	// TODO check the error
+}
+
+func TestBad2(t *testing.T) {
 	original := []string{
 		"Undo",
 		"Redo",
@@ -1164,7 +1182,7 @@ func TestBadInput(t *testing.T) {
 		"Undo",
 		"Redo",
 		"Copy",
-		"Cu&t",
+		"Cut",
 		"Paste",
 		"Find",
 		"Find Again",
@@ -1172,7 +1190,7 @@ func TestBadInput(t *testing.T) {
 		"Undo",
 		"Redo",
 		"Copy",
-		"Cu&t",
+		"Cut",
 		"Paste",
 		"Find",
 		"Find Again",
@@ -1180,7 +1198,7 @@ func TestBadInput(t *testing.T) {
 		"Undo",
 		"Redo",
 		"Copy",
-		"Cu&t",
+		"Cut",
 		"Paste",
 		"Find",
 		"Find Again",
@@ -1188,78 +1206,17 @@ func TestBadInput(t *testing.T) {
 		"Undo",
 		"Redo",
 		"Copy",
-		"Cu&t",
+		"Cut",
 		"Paste",
 		"Find",
 		"Find Again",
 		"Find && Replace",
 	}
-	expected := []string{
-		"Undo",
-		"Redo",
-		"Copy",
-		"Cu&t",
-		"Paste",
-		"Find",
-		"Find Again",
-		"Find && Replace",
-		"Undo",
-		"Redo",
-		"Copy",
-		"Cu&t",
-		"Paste",
-		"Find",
-		"Find Again",
-		"Find && Replace",
-		"Undo",
-		"Redo",
-		"Copy",
-		"Cu&t",
-		"Paste",
-		"Find",
-		"Find Again",
-		"Find && Replace",
-		"Undo",
-		"Redo",
-		"Copy",
-		"Cu&t",
-		"Paste",
-		"Find",
-		"Find Again",
-		"Find && Replace",
-		"Undo",
-		"Redo",
-		"Copy",
-		"Cu&t",
-		"Paste",
-		"Find",
-		"Find Again",
-		"Find && Replace",
-		"&Undo",
-		"&Redo",
-		"&Copy",
-		"Cu&t",
-		"&Paste",
-		"&Find",
-		"Find &Again",
-		"F&ind && Replace"}
-	hinted, count, err := Hinted(original)
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
+	_, _, err := Hinted(original)
+	if err == nil {
+		t.Error("expected an error")
 	}
-	if count != 8 {
-		t.Errorf("expected 8 accelrated got %d", count)
-	}
-	expectedAccels := []rune{'U', 'R', 'C', 't', 'P', 'F', 'A', 'i'}
-	accels := Accelerators(hinted)
-	if !slices.Equal(accels, expectedAccels) {
-		t.Errorf("expected %v accels, got %v", expectedAccels, accels)
-	}
-	for i := 0; i < len(original); i++ {
-		if hinted[i] != expected[i] {
-			t.Errorf("expected %q, got %q", expected[i], hinted[i])
-		}
-	}
+	// TODO check the error
 }
 
 func sanityCheck(hinted []string, t *testing.T) {
