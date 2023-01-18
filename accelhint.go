@@ -117,6 +117,9 @@ func updateWeights(items []string, weights weights, marker rune,
 	mm := m + m
 	prev := rune(0)
 	for row, item := range items {
+		if row == len(weights) {
+			break
+		}
 		weight := 0.0
 		item = strings.ToUpper(strings.ReplaceAll(item, mm, placeholder))
 		for column, c := range item {
@@ -165,8 +168,7 @@ func applyIndexes(items []string, marker byte, alphabet []rune,
 		i := slices.Index(chars, rune(marker))
 		if i > -1 && i+1 < len(chars) {
 			c := chars[i+1]
-			firstRow, found := seen[c]
-			if found {
+			if firstRow, found := seen[c]; found {
 				return nil, 0, fmt.Errorf(errTemplate, c, firstRow, row)
 			}
 			seen[c] = row
@@ -185,8 +187,7 @@ func applyIndexes(items []string, marker byte, alphabet []rune,
 			}
 		}
 		if index > -1 {
-			firstRow, found := seen[c]
-			if found {
+			if firstRow, found := seen[c]; found {
 				return nil, 0, fmt.Errorf(errTemplate, c, firstRow, row)
 			}
 			seen[c] = row
@@ -194,5 +195,9 @@ func applyIndexes(items []string, marker byte, alphabet []rune,
 		}
 		lines = append(lines, line)
 	}
+	for row := len(items) - (len(items) - len(indexes)); row < len(items); row++ {
+		lines = append(lines, items[row])
+	}
+
 	return lines, len(seen), nil
 }

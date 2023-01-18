@@ -1208,17 +1208,67 @@ func TestBad2(t *testing.T) {
 		"Undo",
 		"Redo",
 		"Copy",
+		"CUT",
+		"PASTE",
+	}
+	expected := []string{
+		"Undo",
+		"Redo",
+		"Copy",
+		"Cu&t",
+		"Paste",
+		"Find",
+		"Find Again",
+		"Find && Replace",
+		"Undo",
+		"Redo",
+		"Copy",
 		"Cut",
 		"Paste",
 		"Find",
 		"Find Again",
 		"Find && Replace",
+		"Undo",
+		"Redo",
+		"Copy",
+		"Cut",
+		"&Paste",
+		"Fi&nd",
+		"Find &Again",
+		"Find && Rep&lace",
+		"&Undo",
+		"&Redo",
+		"C&opy",
+		"&Cut",
+		"Pa&ste",
+		"F&ind",
+		"Find A&gain",
+		"&Find && Replace",
+		"Un&do",
+		"R&edo",
+		"Cop&y",
+		"CUT",
+		"PASTE",
 	}
-	_, _, err := Hinted(original)
-	if err == nil {
-		t.Error("expected an error")
+	hinted, count, err := Hinted(original)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
 	}
-	// TODO check the error
+	sanityCheck(hinted, t)
+	if count != 16 {
+		t.Errorf("expected 16 accelrated got %d", count)
+	}
+	for i := 0; i < len(original); i++ {
+		if hinted[i] != expected[i] {
+			t.Errorf("expected %q, got %q", expected[i], hinted[i])
+		}
+	}
+	expectedAccels := []rune{'t', 'P', 'n', 'A', 'l', 'U', 'R', 'o', 'C',
+		's', 'i', 'g', 'F', 'd', 'e', 'y'}
+	accels := drop(Accelerators(hinted), 0)
+	if !slices.Equal(accels, expectedAccels) {
+		t.Errorf("expected\n%+v accels, got\n%+v", expectedAccels, accels)
+	}
 }
 
 func sanityCheck(hinted []string, t *testing.T) {
@@ -1236,4 +1286,14 @@ func sanityCheck(hinted []string, t *testing.T) {
 			used[c] = true
 		}
 	}
+}
+
+func drop[T comparable](items []T, x T) []T {
+	result := make([]T, 0, len(items))
+	for _, item := range items {
+		if item != x {
+			result = append(result, item)
+		}
+	}
+	return result
 }
