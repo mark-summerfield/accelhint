@@ -5,6 +5,7 @@ package accelhint
 
 import (
 	_ "embed"
+	"fmt"
 	"strings"
 	"unicode"
 
@@ -42,14 +43,17 @@ func HintedX(items []string, marker byte, alphabet string) ([]string,
 	int, error) {
 	lines := normalized(items, marker)
 	alphabetChars := []rune(alphabet)
-	weights := getWeights(lines, marker, alphabetChars)
+	weights, err := getWeights(lines, marker, alphabetChars)
+	if err != nil {
+		return nil, 0, err
+	}
 	m, err := munkres.NewHungarianAlgorithm(weights)
 	if err != nil {
 		return nil, 0, err
 	}
 	indexes := m.Execute()
-	lines, count := applyIndexes(items, marker, alphabetChars, indexes)
-	return lines, count, nil
+	lines, count, err := applyIndexes(items, marker, alphabetChars, indexes)
+	return lines, count, err
 }
 
 // Returns the accelerated chars from the hinted strings assuming '&' is the
@@ -89,10 +93,11 @@ func normalized(items []string, marker byte) []string {
 	return lines
 }
 
-func getWeights(items []string, marker byte, alphabet []rune) weights {
+func getWeights(items []string, marker byte, alphabet []rune) (weights,
+	error) {
 	weights := makeMaxWeights(len(alphabet))
-	updateWeights(items, weights, rune(marker), alphabet)
-	return weights
+	err := updateWeights(items, weights, rune(marker), alphabet)
+	return weights, err
 }
 
 func makeMaxWeights(size int) weights {
@@ -107,7 +112,7 @@ func makeMaxWeights(size int) weights {
 }
 
 func updateWeights(items []string, weights weights, marker rune,
-	alphabet []rune) {
+	alphabet []rune) error {
 	m := string(marker)
 	mm := m + m
 	prev := rune(0)
@@ -136,12 +141,14 @@ func updateWeights(items []string, weights weights, marker rune,
 			prev = c
 		}
 	}
+	return nil
 }
 
 func applyIndexes(items []string, marker byte, alphabet []rune,
-	indexes []int) ([]string, int) {
+	indexes []int) ([]string, int, error) {
+	const errTemplate = "duplicate accelerator %q in rows %d and %d"
+	seen := make(map[rune]int) // key=char value=row in items
 	lines := make([]string, 0, len(items))
-	count := 0
 	m := string(marker)
 	mm := m + m
 	for row, column := range indexes {
@@ -154,28 +161,38 @@ func applyIndexes(items []string, marker byte, alphabet []rune,
 			continue // unassigned or empty
 		}
 		uline := strings.ReplaceAll(strings.ToUpper(line), mm, placeholder)
-		i := strings.IndexByte(uline, marker)
-		if i > -1 {
+		chars := []rune(uline)
+		i := slices.Index(chars, rune(marker))
+		if i > -1 && i+1 < len(chars) {
+			c := chars[i+1]
+			firstRow, found := seen[c]
+			if found {
+				return nil, 0, fmt.Errorf(errTemplate, c, firstRow, row)
+			}
+			seen[c] = row
 			lines = append(lines, line)
-			count++
 			continue // user preset
 		}
 		c := alphabet[column]
 		sc := string(c)
-		var index int                      // first is best
-		if !strings.HasPrefix(uline, sc) { // !first
+		var index int      // first is best
+		if chars[0] != c { // !first
 			index = strings.Index(uline, " "+sc)
 			if index > -1 { // start of word is second best
 				index++ // skip the space
 			} else { // anywhere is third best
-				index = strings.IndexRune(uline, c)
+				index = slices.Index(chars, c)
 			}
 		}
 		if index > -1 {
+			firstRow, found := seen[c]
+			if found {
+				return nil, 0, fmt.Errorf(errTemplate, c, firstRow, row)
+			}
+			seen[c] = row
 			line = line[:index] + m + line[index:]
-			count++
 		}
 		lines = append(lines, line)
 	}
-	return lines, count
+	return lines, len(seen), nil
 }

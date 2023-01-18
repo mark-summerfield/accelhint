@@ -1162,11 +1162,13 @@ func TestBad1(t *testing.T) {
 		"Find Again",
 		"Find && Replace",
 	}
-	_, _, err := Hinted(original)
+	hinted, _, err := Hinted(original)
 	if err == nil {
-		t.Error("expected an error")
+		t.Errorf("expected an error, got %+v", hinted)
 	}
-	// TODO check the error
+	if err.Error() != "duplicate accelerator 'C' in rows 2 and 3" {
+		t.Errorf("expected a different error, got %v", err)
+	}
 }
 
 func TestBad2(t *testing.T) {
