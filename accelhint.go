@@ -23,7 +23,7 @@ const (
 	Marker      = '&'
 	GtkMarker   = '_'
 	maxWeight   = 900100.0
-	placeholder = "\a\a"
+	placeholder = "||"
 )
 
 // Returns items with '&'s to indicate accelerators, and the number
